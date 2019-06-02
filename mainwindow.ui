@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>441</width>
-    <height>288</height>
+    <width>605</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>441</width>
+     <width>605</width>
      <height>22</height>
     </rect>
    </property>
@@ -74,8 +74,23 @@ p, li { white-space: pre-wrap; }
     <addaction name="separator"/>
     <addaction name="actBackgroundColor"/>
    </widget>
+   <widget class="QMenu" name="menuEncoding">
+    <property name="title">
+     <string>Encoding</string>
+    </property>
+    <addaction name="actionList"/>
+    <addaction name="separator"/>
+    <addaction name="actionUTF_8"/>
+    <addaction name="separator"/>
+    <addaction name="actionWin_1251"/>
+    <addaction name="separator"/>
+    <addaction name="actionKOI_8R"/>
+    <addaction name="separator"/>
+    <addaction name="actionUTF_16"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStyle"/>
+   <addaction name="menuEncoding"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -144,6 +159,36 @@ p, li { white-space: pre-wrap; }
   <action name="actBackgroundColor">
    <property name="text">
     <string>Background color</string>
+   </property>
+  </action>
+  <action name="actionList">
+   <property name="text">
+    <string>Codecs List</string>
+   </property>
+  </action>
+  <action name="actionUTF_8">
+   <property name="text">
+    <string>UTF-8</string>
+   </property>
+  </action>
+  <action name="actionWin_1251">
+   <property name="text">
+    <string>Win-1251</string>
+   </property>
+  </action>
+  <action name="actionKOI_8R">
+   <property name="text">
+    <string>KOI-8R</string>
+   </property>
+  </action>
+  <action name="actionUTF_16">
+   <property name="text">
+    <string>UTF-16</string>
+   </property>
+  </action>
+  <action name="actionChange_Coding">
+   <property name="text">
+    <string>Change</string>
    </property>
   </action>
  </widget>
