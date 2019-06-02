@@ -1,0 +1,312 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+
+#include <QAction>
+#include <QApplication>
+#include <QClipboard>
+#include <QColorDialog>
+#include <QComboBox>
+#include <QFontComboBox>
+#include <QFontDialog>
+#include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFontDatabase>
+#include <QMenu>
+#include <QMenuBar>
+#include <QTextCodec>
+#include <QTextEdit>
+#include <QStatusBar>
+#include <QToolBar>
+#include <QTextCursor>
+#include <QTextDocumentWriter>
+#include <QTextList>
+#include <QtDebug>
+#include <QCloseEvent>
+#include <QMessageBox>
+#include <QMimeData>
+#if defined(QT_PRINTSUPPORT_LIB)
+#include <QtPrintSupport/qtprintsupportglobal.h>
+#if QT_CONFIG(printer)
+#if QT_CONFIG(printdialog)
+#include <QPrintDialog>
+#endif
+#include <QPrinter>
+#if QT_CONFIG(printpreviewdialog)
+#include <QPrintPreviewDialog>
+#endif
+#endif
+#endif
+
+const QString rsrcPath = ":/images";
+
+
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    //connect this action to the slot open()
+    connect(ui->actOpen, SIGNAL(triggered()), this, SLOT(Open()));
+    connect(ui->actSave, SIGNAL(triggered()), this, SLOT(Save()));
+    connect(ui->actSaveAs, SIGNAL(triggered()), this, SLOT(SaveAs()));
+    connect(ui->actNew, SIGNAL(triggered()), this, SLOT(New()));
+    connect(ui->actTextFont, SIGNAL(triggered()), this, SLOT(SetTextFont()));
+    connect(ui->actTextColor, SIGNAL(triggered()), this, SLOT(SetTextColor()));
+    connect(ui->actTextBackgroundColor, SIGNAL(triggered()), this, SLOT(SetTextBackgroundColor()));
+    connect(ui->actBackgroundColor, SIGNAL(triggered()), this, SLOT(SetBackgroundColor()));
+
+    QPixmap pix(16, 16);
+    pix.fill(Qt::black);
+    ui->actTextColor->setIcon(pix);
+
+    QPixmap bgpix(16, 16);
+    bgpix.fill(Qt::white);
+    ui->actBackgroundColor->setIcon(bgpix);
+
+    ui->teLines->setWordWrapMode(QTextOption::NoWrap);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::SetCurrentFileName(const QString &fileName)
+{
+    this->fileName = fileName;
+    ui->teLines->document()->setModified(false);
+
+    QString shownName;
+    if (fileName.isEmpty())
+        shownName = "untitled.txt";
+    else
+        shownName = QFileInfo(fileName).fileName();
+
+    setWindowTitle(tr("%1[*] - %2").arg(shownName, QCoreApplication::applicationName()));
+    setWindowModified(false);
+}
+
+bool MainWindow::Load(const QString &f)
+{
+    if (!QFile::exists(f))
+        return false;
+    QFile file(f);
+    if (!file.open(QFile::ReadOnly))
+        return false;
+
+    QByteArray data = file.readAll();
+    QTextCodec *codec = Qt::codecForHtml(data);
+    QString str = codec->toUnicode(data);
+    if (Qt::mightBeRichText(str)) {
+        ui->teLines->setHtml(str);
+    } else {
+        str = QString::fromLocal8Bit(data);
+        ui->teLines->setPlainText(str);
+    }
+
+    SetCurrentFileName(f);
+    return true;
+}
+
+void MainWindow::Open()
+{
+    QFileDialog fileDialog(this, tr("Open File..."));
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+    fileDialog.setNameFilter(tr("CPP(*.cpp *.h);;Text files (*.txt);;Python files (*.py)"));
+    if (fileDialog.exec() != QDialog::Accepted)
+        return;
+    const QString fn = fileDialog.selectedFiles().first();
+    if (Load(fn))
+        statusBar()->showMessage(tr("File Opened \"%1\"").arg(QDir::toNativeSeparators(fn)));
+    else
+        statusBar()->showMessage(tr("Could Not Open File\"%1\"").arg(QDir::toNativeSeparators(fn)));
+}
+
+bool MainWindow::Save()
+{
+    if (fileName.isEmpty())
+    {
+        return SaveAs();
+    }
+    if (fileName.startsWith(QStringLiteral(":/")))
+    {
+        return SaveAs();
+    }
+
+    QTextDocumentWriter writer(fileName);
+    bool success = writer.write(ui->teLines->document());
+    if (success) {
+        ui->teLines->document()->setModified(false);
+        statusBar()->showMessage(tr("File Saved \"%1\"").arg(QDir::toNativeSeparators(fileName)));
+    } else {
+        statusBar()->showMessage(tr("Could Not Save The File \"%1\"")
+                                 .arg(QDir::toNativeSeparators(fileName)));
+    }
+
+    return success;
+}
+
+bool MainWindow::SaveAs()
+{
+    QFileDialog fileDialog(this, tr("Save as..."));
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    fileDialog.setNameFilter(tr("CPP(*.cpp *.h);;Text files (*.txt);;Python files (*.py)"));
+    fileDialog.setDefaultSuffix("txt");
+    if (fileDialog.exec() != QDialog::Accepted)
+        return false;
+    const QString fn = fileDialog.selectedFiles().first();
+    SetCurrentFileName(fn);
+    return Save();
+}
+
+
+bool MainWindow::SaveNeeded()
+{
+    if (!ui->teLines->document()->isModified())
+    {
+        return true;
+    }
+
+    const QMessageBox::StandardButton resBtn =
+        QMessageBox::warning(this, QCoreApplication::applicationName(),
+                             tr("The document was changed.\n"
+                                "Do you want to save it?"),
+                             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    if (resBtn == QMessageBox::Save)
+    {
+        return Save();
+    }else if (resBtn == QMessageBox::Cancel)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+
+void MainWindow::New()
+{
+    if (SaveNeeded())
+    {
+        ui->teLines->clear();
+        SetCurrentFileName(QString());
+    }
+
+    statusBar()->showMessage(tr("New File Created"),2000);
+}
+
+void MainWindow::SetTextFont()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(
+                    &ok, QFont("Courier 10 Pitch Regular", 10), this);
+    if (ok) {
+        // the user clicked OK and font is set to the font the user selected
+    } else {
+        // the user canceled the dialog; font is set to the initial
+        // value, in this case Helvetica [Cronyx], 10
+    }
+
+    QTextCharFormat fmt;
+    fmt.setFont(font);
+    ChangeSelectionFormat(fmt);
+
+//    ui->teLines->setFont(font);
+
+
+    statusBar()->showMessage(font.family(),2000);
+    //statusBar()->showMessage(tr("Text Font changed"),2000);
+}
+
+void MainWindow::ChangeSelectionFormat(const QTextCharFormat &format)
+{
+    QTextCursor cursor = ui->teLines->textCursor();
+
+    if (!cursor.hasSelection())
+    {
+        cursor.select(QTextCursor::WordUnderCursor);
+    }
+
+    cursor.mergeCharFormat(format);
+    ui->teLines->mergeCurrentCharFormat(format);
+}
+
+void MainWindow::FontChanged(const QFont &f)
+{
+//    comboFont->setCurrentIndex(comboFont->findText(QFontInfo(f).family()));
+//    comboSize->setCurrentIndex(comboSize->findText(QString::number(f.pointSize())));
+//    actionTextBold->setChecked(f.bold());
+//    actionTextItalic->setChecked(f.italic());
+//    actionTextUnderline->setChecked(f.underline());
+}
+
+void MainWindow::TextColorChanged(const QColor &c)
+{
+    QPixmap pix(16, 16);
+    pix.fill(c);
+    ui->actTextColor->setIcon(pix);
+}
+
+void MainWindow::SetTextColor()
+{
+    QColor col = QColorDialog::getColor(ui->teLines->textColor(), this);
+    if (!col.isValid())
+        return;
+    QTextCharFormat fmt;
+    fmt.setForeground(col);
+    ChangeSelectionFormat(fmt);
+    TextColorChanged(col);
+
+    statusBar()->showMessage(tr("Text Color changed"),2000);
+}
+
+void MainWindow::TextBackgroundColorChanged(const QColor &c)
+{
+    QPixmap pix(16, 16);
+    pix.fill(c);
+    ui->actTextBackgroundColor->setIcon(pix);
+}
+
+void MainWindow::SetTextBackgroundColor()
+{
+    QColor col = QColorDialog::getColor(ui->teLines->textColor(), this);
+    if (!col.isValid())
+        return;
+    QTextCharFormat fmt;
+    fmt.setBackground(col);
+    ChangeSelectionFormat(fmt);
+    TextBackgroundColorChanged(col);
+
+    statusBar()->showMessage(tr("Text Background Color changed"),2000);
+}
+
+void MainWindow::BackgroundColorChanged(const QColor &c)
+{
+    QPixmap pix(16, 16);
+    pix.fill(c);
+    ui->actBackgroundColor->setIcon(pix);
+}
+
+void MainWindow::SetBackgroundColor()
+{
+    QColor col = QColorDialog::getColor(ui->teLines->textColor(), this);
+    if (!col.isValid())
+    {
+        return;
+    }
+
+    QPalette p = ui->teLines->palette(); // define pallete for textEdit..
+    p.setColor(QPalette::Base, col); // set color "Red" for textedit base
+    //p.setColor(QPalette::Text, color); // set text color which is selected from color pallete
+    ui->teLines->setPalette(p); // change textedit palette
+    BackgroundColorChanged(col);
+
+    statusBar()->showMessage(tr("Background Color changed"),2000);
+}
+
