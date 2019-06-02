@@ -10,6 +10,8 @@ class QFontComboBox;
 class QTextEdit;
 class QTextCharFormat;
 class QMenu;
+class QActionGroup;
+class QTextCodec;
 QT_END_NAMESPACE
 
 
@@ -28,12 +30,11 @@ public:
 private:
     Ui::MainWindow *ui;
 
-//    QComboBox *comboStyle;
-//    QFontComboBox *comboFont;
-//    QComboBox *comboSize;
-
     QToolBar *tb;
     QString fileName;
+    QActionGroup *EncodingGroup;
+
+    QTextCodec *codec;
 
     void ChangeSelectionFormat(const QTextCharFormat &format);
     void FontChanged(const QFont &f);
@@ -53,6 +54,13 @@ private slots:
     void SetTextColor();
     void SetTextBackgroundColor();
     void SetBackgroundColor();
+    void ListAvailableCodecs();
+    void SetActionUTF_8();
+    void SetActionUTF_16();
+    void SetActionWin_1251();
+    void SetActionKOI_8R();
+    void SetActionChange_Coding();
+
 };
 
 #endif // MAINWINDOW_H

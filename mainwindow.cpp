@@ -26,6 +26,8 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QListIterator>
+#include <QActionGroup>
 #if defined(QT_PRINTSUPPORT_LIB)
 #include <QtPrintSupport/qtprintsupportglobal.h>
 #if QT_CONFIG(printer)
@@ -58,6 +60,25 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actTextColor, SIGNAL(triggered()), this, SLOT(SetTextColor()));
     connect(ui->actTextBackgroundColor, SIGNAL(triggered()), this, SLOT(SetTextBackgroundColor()));
     connect(ui->actBackgroundColor, SIGNAL(triggered()), this, SLOT(SetBackgroundColor()));
+    connect(ui->actionList, SIGNAL(triggered()), this, SLOT(ListAvailableCodecs()));
+    connect(ui->actionUTF_8, SIGNAL(triggered()), this, SLOT(SetActionUTF_8()));
+    connect(ui->actionUTF_16, SIGNAL(triggered()), this, SLOT(SetActionUTF_16()));
+    connect(ui->actionWin_1251, SIGNAL(triggered()), this, SLOT(SetActionWin_1251()));
+    connect(ui->actionKOI_8R, SIGNAL(triggered()), this, SLOT(SetActionKOI_8R()));
+
+    ui->actionUTF_8->setCheckable(true);
+    ui->actionUTF_16->setCheckable(true);
+    ui->actionWin_1251->setCheckable(true);
+    ui->actionKOI_8R->setCheckable(true);
+
+    EncodingGroup = new QActionGroup(this);
+    EncodingGroup->addAction(ui->actionUTF_8);
+    EncodingGroup->addAction(ui->actionUTF_16);
+    EncodingGroup->addAction(ui->actionWin_1251);
+    EncodingGroup->addAction(ui->actionKOI_8R);
+    ui->actionUTF_8->setChecked(true);
+
+    codec = QTextCodec::codecForName("UTF-8");
 
     QPixmap pix(16, 16);
     pix.fill(Qt::black);
@@ -98,15 +119,30 @@ bool MainWindow::Load(const QString &f)
     if (!file.open(QFile::ReadOnly))
         return false;
 
-    QByteArray data = file.readAll();
-    QTextCodec *codec = Qt::codecForHtml(data);
-    QString str = codec->toUnicode(data);
+//    QByteArray data = file.readAll();
+//    QString str = codec->toUnicode(data);
+//    if (Qt::mightBeRichText(str)) {
+//        ui->teLines->setHtml(str);
+//    } else {
+//        str = QString::fromLocal8Bit(data);
+//        ui->teLines->setPlainText(str);
+//    }
+
+    QTextStream stream (&file);
+     stream.setCodec(codec);
+
+     QString str =  stream.readAll();
+
+     ui->teLines->setPlainText(str);
+
+
+    /*QString str = codec->toUnicode(data);
     if (Qt::mightBeRichText(str)) {
         ui->teLines->setHtml(str);
     } else {
         str = QString::fromLocal8Bit(data);
         ui->teLines->setPlainText(str);
-    }
+    }*/
 
     SetCurrentFileName(f);
     return true;
@@ -139,6 +175,7 @@ bool MainWindow::Save()
     }
 
     QTextDocumentWriter writer(fileName);
+    writer.setCodec(codec);
     bool success = writer.write(ui->teLines->document());
     if (success) {
         ui->teLines->document()->setModified(false);
@@ -309,4 +346,36 @@ void MainWindow::SetBackgroundColor()
 
     statusBar()->showMessage(tr("Background Color changed"),2000);
 }
+
+void MainWindow::ListAvailableCodecs()
+{
+    QList<QByteArray>  QL=QTextCodec::availableCodecs();
+    QListIterator<QByteArray> i(QL);
+    while (i.hasNext())
+    ui->teLines->append(i.next());
+}
+
+void MainWindow::SetActionUTF_8()
+{
+    codec = QTextCodec::codecForName("UTF-8");
+}
+
+void MainWindow::SetActionUTF_16()
+{
+    codec = QTextCodec::codecForName("UTF-16");
+
+}
+
+void MainWindow::SetActionWin_1251()
+{
+    codec = QTextCodec::codecForName("windows-1251");
+
+}
+
+void MainWindow::SetActionKOI_8R()
+{
+    codec = QTextCodec::codecForName("KOI8-R");
+
+}
+
 
