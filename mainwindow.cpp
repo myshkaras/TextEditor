@@ -91,9 +91,14 @@ MainWindow::MainWindow(QWidget* parent) :
 
 MainWindow::~MainWindow()
 {
-    delete _ui;
-    delete _tb;
-    delete _encodingGroup;
+    if (_encodingGroup!=nullptr)
+    {
+        delete _encodingGroup;
+    }
+    if (_ui!=nullptr)
+    {
+        delete _ui;
+    }
 }
 
 void MainWindow::setCurrentFileName(const QString &fileName)

@@ -32,7 +32,6 @@ public:
 
 private:
     Ui::MainWindow* _ui;
-    QToolBar* _tb;
     QActionGroup* _encodingGroup;
 
     FileOperator _edFile;
