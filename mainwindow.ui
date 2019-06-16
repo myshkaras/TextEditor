@@ -78,7 +78,6 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>Encoding</string>
     </property>
-    <addaction name="actionList"/>
     <addaction name="separator"/>
     <addaction name="actionUTF_8"/>
     <addaction name="separator"/>
@@ -183,7 +182,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionUTF_16">
    <property name="text">
-    <string>UTF-16</string>
+    <string>CP866</string>
    </property>
   </action>
   <action name="actionChange_Coding">

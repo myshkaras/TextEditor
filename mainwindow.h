@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "readsavefile.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -26,43 +27,38 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow* _ui;
+    QToolBar* _tb;
+    QActionGroup* _encodingGroup;
 
-    QToolBar *tb;
-    QString fileName;
-    QActionGroup *EncodingGroup;
+    FileOperator _edFile;
 
-    QTextCodec *codec;
-
-    void ChangeSelectionFormat(const QTextCharFormat &format);
-    void FontChanged(const QFont &f);
-    void TextColorChanged(const QColor &c);
-    void TextBackgroundColorChanged(const QColor &c);
-    void BackgroundColorChanged(const QColor &c);
+    void changeSelectionFormat(const QTextCharFormat& format);
+    void textColorChanged(const QColor& c);
+    void textBackgroundColorChanged(const QColor& c);
+    void backgroundColorChanged(const QColor& c);
 
 private slots:
-    void SetCurrentFileName(const QString &fileName);
-    bool SaveNeeded();
-    bool Load(const QString &f);
-    void Open();
-    bool Save();
-    bool SaveAs();
+    void setCurrentFileName(const QString& fileName);
+    bool saveNeeded();
+    bool load(const QString& f);
+    void open();
+    bool save();
+    bool saveAs();
     void New();
-    void SetTextFont();
-    void SetTextColor();
-    void SetTextBackgroundColor();
-    void SetBackgroundColor();
-    void ListAvailableCodecs();
-    void SetActionUTF_8();
-    void SetActionUTF_16();
-    void SetActionWin_1251();
-    void SetActionKOI_8R();
-    void SetActionChange_Coding();
 
+    void setTextFont();
+    void setTextColor();
+    void setTextBackgroundColor();
+    void setBackgroundColor();
+    void setActionUTF_8();
+    void setActioncp866();
+    void setActionWin_1251();
+    void setActionKOI_8R();
 };
 
 #endif // MAINWINDOW_H
