@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget* parent) :
 {
     _ui->setupUi(this);
 
-    //connect this action to the slot open()
+    //connect this action to the slot
     connect(_ui->actOpen, SIGNAL(triggered()), this, SLOT(open()));
     connect(_ui->actSave, SIGNAL(triggered()), this, SLOT(save()));
     connect(_ui->actSaveAs, SIGNAL(triggered()), this, SLOT(saveAs()));
